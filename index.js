@@ -9,7 +9,7 @@ let movies = [
 		Name: 'Western',
 		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
 	},
-	Directior: {
+	Director: {
 		Name: 'Clint Eastwood',
 		Bio: 'Clint Eastwood is an American actor, film director, producer, and composer.',
 		Birth: 'May 31, 1930',
@@ -151,3 +151,40 @@ app.listen(8080, () => {
 	console.log('Your app is listening on port 8080.');
 });
 
+// READ
+app.get('/movies', (req, res) => {
+	res.status(200).json(movies);
+});
+
+app.get('/movies/:title', (req, res) => {
+	const { title } = req.params;
+	const movie = movies.find( movie => movie.Title === title);
+
+	if (movie) {
+		res.status(200).json(movie);
+	} else {
+		res.status(400).send('Movie not found.');
+	}
+});
+
+app.get('/movies/genre/:genreName', (req, res) => {
+	const { genreName } = req.params;
+	const genre = movies.find( movie => movie.Genre.Name === genreName).Genre;
+
+	if (genre) {
+		res.status(200).json(genre);
+	} else {
+		res.status(400).send('Genre not found.');
+	}
+});
+
+app.get('/movies/director/:directorName', (req, res) => {
+	const { directorName } = req.params;
+	const director = movies.find( movie => movie.Director.Name === directorName).Director;
+
+	if (director) {
+		res.status(200).json(director);
+	} else {
+		res.status(400).send('Director not found.');
+	}
+});

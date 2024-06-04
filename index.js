@@ -1,6 +1,11 @@
-const express = require('express');
-const morgan = require('morgan');
-const app = express();
+const express = require('express'),
+ 	  morgan = require('morgan'),
+	  app = express(),
+	  bodyParser = require('body-parser'),
+	  uuid = require('uuid');
+
+
+app.use(bodyParser.json());
 
 let users = [
 	{
@@ -201,3 +206,72 @@ app.get('/movies/director/:directorName', (req, res) => {
 		res.status(400).send('Director not found.');
 	}
 });
+
+// CREATE
+app.post('/users', (req, res) => {
+	const newUser = req.body;
+
+	if (newUser.name) {
+		newUser.id = uuid.v4();
+		users.push(newUser);
+		res.status(201).json(newUser);
+	} else {
+		res.status(400).send('Please provide a name.');
+	}
+})
+
+// UPDATE
+app.put('/users/:id', (req, res) => {
+	const { id } = req.params;
+	const updatedUser = req.body;
+
+	let user = users.find( user => user.id == id);
+
+	if (user) {
+		user.name = updatedUser.name;
+		res.status(200).json(user);
+	} else {
+		res.status(400).send('User not found.');
+	}
+})
+
+// CREATE
+app.post('/users/:id/:movieTitle', (req, res) => {
+	const { id, movieTitle } = req.params;
+
+	let user = users.find( user => user.id == id);
+
+	if (user) {
+		user.favoriteMovies.push(movieTitle);
+		res.status(200).send(`${movieTitle} has been added to user ${id}'s array`);
+	} else {
+		res.status(400).send('User not found.');
+	}
+})
+
+// DELETE
+app.delete('/users/:id/:movieTitle', (req, res) => {
+	const { id, movieTitle } = req.params;
+
+	let user = users.find( user => user.id == id);
+
+	if (user) {
+		user.favoriteMovies = user.favoriteMovies.filter(title => title !== movieTitle);
+		res.status(200).send(`${movieTitle} has been removed from user ${id}'s array`);
+	} else {
+		res.status(400).send('User not found.');
+	}
+})
+
+app.delete('/users/:id', (req, res) => {
+	const { id } = req.params;
+
+	let user = users.find( user => user.id == id);
+
+	if (user) {
+		users = users.filter(user => user.id != id);
+		res.status(200).send(`user ${id} had been deleted`);
+	} else {
+		res.status(400).send('User not found.');
+	}
+})

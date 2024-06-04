@@ -2,36 +2,127 @@ const express = require('express');
 const morgan = require('morgan');
 const app = express();
 
-let topMovies = [
-{	title: 'Unforgiven',
-	directior: 'Clint Eastwood',
+let movies = [
+{	Title: 'Unforgiven',
+	Description: 'Retired Old West gunslinger William Munny reluctantly takes on one last job, with the help of his old partner Ned Logan and a young man, The "Schofield Kid."',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Directior: {
+		Name: 'Clint Eastwood',
+		Bio: 'Clint Eastwood is an American actor, film director, producer, and composer.',
+		Birth: 'May 31, 1930',
+	}
 },
-{	title: 'The Searchers',
-	director: 'John Ford',
+{	Title: 'The Searchers',
+	Description: 'An American Civil War veteran embarks on a years-long journey to rescue his niece from the Comanches after the rest of his brother\'s family is massacred in a raid on their Texas farm.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'John Ford',
+		Bio: 'John Ford was an American film director. He is renowned both for Westerns such as Stagecoach, The Search',
+		Birth: 'February 1, 1894',
+	}
 }, 
-{	title: 'The Good, the Bad and the Ugly',
-	director: 'Sergio Leone',
+{	Title: 'The Good, the Bad and the Ugly',
+	Description: 'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'Sergio Leone',
+		Bio: 'Sergio Leone was an Italian film director, producer, and screenwriter, credited as the creator of the Spaghetti Western genre.',
+		Birth: 'January 3, 1929',
+	}
 },
-{	title: 'Once Upon a Time in the West',
-	director: 'Sergio Leone',
+{	Title: 'Once Upon a Time in the West',
+	Description: 'A mysterious stranger with a harmonica joins forces with a notorious desperado to protect a beautiful widow from a ruthless assassin working for the railroad.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'Sergio Leone',
+		Bio: 'Sergio Leone was an Italian film director, producer, and screenwriter, credited as the creator of the Spaghetti Western genre.',
+		Birth: 'January 3, 1929',
+	
+	}
 },
-{	title: 'High Noon',
-	director: 'Fred Zinnemann',
+{	Title: 'High Noon',
+	Description: 'A town Marshal, despite the disagreements of his newlywed bride and the townspeople around him, must face a gang of deadly killers alone at "high noon" when the gang leader, an outlaw he "sent up" years ago, arrives on the noon train.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'Fred Zinnemann',
+		Bio: 'Fred Zinnemann was an Austrian-born American film director.',
+		Birth: 'April 29, 1907',
+	}
 },
-{	title: 'Shane',
-	director: 'George Stevens',
+{	Title: 'Shane',
+	Description: 'An ex-gunfighter defends homesteaders in 1889 Wyoming.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'George Stevens',
+		Bio: 'George Stevens was an American film director, producer, screenwriter and cinematographer.',
+		Birth: 'December 18, 1904',
+	}
 },
-{	title: 'Butch Cassidy and the Sundance Kid',
-	director: 'George Roy Hill',
+{	Title: 'Butch Cassidy and the Sundance Kid',
+	Description: 'In 1890s Wyoming, Butch Cassidy and The Sundance Kid lead a band of outlaws. When a train robbery goes wrong, they find themselves on the run with a posse hard on their heels. After considering their options, they escape to South America.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'George Roy Hill',
+		Bio: 'George Roy Hill was an American film director.',
+		Birth: 'December 20, 1921',
+	}
 },
-{	title: 'The Magnificent Seven',
-	director: 'John Sturges',
+{	Title: 'The Magnificent Seven',
+	Description: 'Seven gunfighters are hired by Mexican peasants to liberate their village from oppressive bandits.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'John Sturges',
+		Bio: 'John Sturges was an American film director.',
+		Birth: 'January 3, 1910',
+	}
 },
-{	title: 'The Wild Bunch',
-	director: 'Sam Peckinpah',
+{	Title: 'The Wild Bunch',
+	Description: 'An aging group of outlaws look for one last big score as the "traditional" American West is disappearing around them.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'Sam Peckinpah',
+		Bio: 'David Samuel Peckinpah was an American film director and screenwriter.',
+		Birth: 'February 21, 1925',
+	}
 },
-{	title: 'Dances with Wolves',
-	director: 'Kevin Costner',
+{	Title: 'Dances with Wolves',
+	Description: 'Lieutenant John Dunbar, assigned to a remote western Civil War outpost, finds himself engaging with a neighbouring Sioux settlement, causing him to question his own purpose.',
+	Genre: { 
+		Name: 'Western',
+		Description: 'A genre of films set in the American West, featuring cowboys, outlaws, and Native Americans.'
+	},
+	Director: {
+		Name: 'Kevin Costner',
+		Bio: 'Kevin Michael Costner is an American actor, film director, producer, and musician.',
+		Birth: 'January 18, 1955',
+	}
 },
 ];
 
@@ -43,7 +134,7 @@ app.get('/', (req, res) => {
 	res.send('Welcome to my app!');
 });
 app.get('/movies', (req, res) => {
-	res.json(topMovies);
+	res.json(movies);
 });
 app.get('/documentation', (req, res) => {
 	res.sendFile('public/documentation.html', { root: __dirname });
@@ -59,3 +150,4 @@ app.use((err, req, res, next) => {
 app.listen(8080, () => {
 	console.log('Your app is listening on port 8080.');
 });
+

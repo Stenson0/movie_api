@@ -2,6 +2,19 @@ const express = require('express');
 const morgan = require('morgan');
 const app = express();
 
+let users = [
+	{
+		id: 1,
+		name: 'Kim',
+		favoriteMovies: []
+	},
+	{
+		id: 2,
+		name: 'Joe',
+		favoriteMovies: ['Unforgiven']
+	},
+];
+
 let movies = [
 {	Title: 'Unforgiven',
 	Description: 'Retired Old West gunslinger William Munny reluctantly takes on one last job, with the help of his old partner Ned Logan and a young man, The "Schofield Kid."',

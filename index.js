@@ -6,16 +6,19 @@ const express = require('express'),
 	  mongoose = require('mongoose'),
 	  Models = require('./models.js');
 
-const Movies = Models.Movie;
-const Users = Models.User;	
+const Movies = Models.Movie;	
 const Genres = Models.Genre;
 const Directors = Models.Director;
+const Users = Models.User;
 
 mongoose.connect('mongodb://localhost:27017/myFlixDB');
+mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(morgan('common'));  
+
+app.use(express.json());
 
 // get request
 app.get('/', (req, res) => {
@@ -43,7 +46,7 @@ app.listen(8080, () => {
 	console.log('Your app is listening on port 8080.');
 });
 
-app.get('/movies/:title', async (req, res) => {
+app.get('/movies/:Title', async (req, res) => {
 	Movies.findOne({ Title: req.params.Title })
         .then((movie) => {
             res.json(movie);
@@ -126,27 +129,31 @@ app.post('/users', async (req, res) => {
 	});
 });
 
-// UPDATE
-app.put('/users/:Username', (req, res) => {
-	Users.findOneAndUpdate({ Username: req.params.Username }, 
-        {
-            $set: {
-                Username: req.body.Username,
-                Password: req.body.Password,
-                Email: req.body.Email,
-                Birthday: req.body.Birthday
-            }
-        },
-        { new: true },
-        (err, updatedUser) => {
-            if (err) {
-                console.error(err);
-                res.status(500).send('Error: ' + err);
-            } else {
-                res.json(updatedUser);
-            }
-        })
-});	
+//UPDATE
+app.put('/users/:Username', async (req, res) => {
+    try {
+        const updatedUser = await Users.findOneAndUpdate(
+            { Username: req.params.Username },
+            {
+                $set: {
+                    Username: req.body.Username,
+                    Password: req.body.Password,
+                    Email: req.body.Email,
+                    Birthday: req.body.Birthday
+                }
+            },
+            { new: true }
+        );
+        if (!updatedUser) {
+            res.status(404).send('User not found');
+        } else {
+            res.json(updatedUser);
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    }
+});
 
 app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
     await Users.findOneAndUpdate({ Username: req.params.Username }, {
@@ -163,21 +170,57 @@ app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
 });
 
 // DELETE
-app.delete('/users/:id/:movieTitle', (req, res) => {
-	const { id, movieTitle } = req.params;
+// app.delete('/users/:id/:movieTitle', (req, res) => {
+// 	const { id, movieTitle } = req.params;
 
-	let user = Users.find( user => user.id == id);
+// 	let user = Users.find( user => user.id == id);
 
-	if (user) {
-		user.favoriteMovies = user.favoriteMovies.filter(title => title !== movieTitle);
-		res.status(200).send(`${movieTitle} has been removed from user ${id}'s array`);
-	} else {
-		res.status(400).send('User not found.');
-	}
-})
+// 	if (user) {
+// 		user.favoriteMovies = user.favoriteMovies.filter(title => title !== movieTitle);
+// 		res.status(200).send(`${movieTitle} has been removed from user ${id}'s array`);
+// 	} else {
+// 		res.status(400).send('User not found.');
+// 	}
+// })
+
+app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
+    const { Username, MovieID } = req.params;
+
+    console.log(`Attempting to remove movie ${MovieID} from user ${Username}'s favorites`);
+
+    try {
+        const user = await Users.findOne({ Username: Username });
+        if (!user) {
+            console.log(`User ${Username} not found`);
+            return res.status(404).send('User not found');
+        }
+
+        console.log(`User ${Username} found with favorite movies: ${user.FavoriteMovies}`);
+
+        // Ensure MovieID is treated as a string
+        const movieIDString = String(MovieID);
+
+        const updatedUser = await Users.findOneAndUpdate(
+            { Username: Username },
+            { $pull: { FavoriteMovies: movieIDString } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            console.log(`Failed to update user ${Username}`);
+            res.status(404).send('User not found');
+        } else {
+            console.log(`Movie ${movieIDString} has been removed from ${Username}'s list of favorite movies.`);
+            res.status(200).send(`Movie ${movieIDString} has been removed from ${Username}'s list of favorite movies.`);
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error: ' + err);
+    }
+});
 
 app.delete('/users/:Username', (req, res) => {
-	Users.findOneAndRemove({ Username: req.params.Username })
+	Users.findOneAndDelete({ Username: req.params.Username })
         .then((user) => {
             if (!user) {
                 res.status(400).send(req.params.Username + ' was not found');

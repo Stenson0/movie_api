@@ -169,55 +169,19 @@ app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
         });
 });
 
-// DELETE
-// app.delete('/users/:id/:movieTitle', (req, res) => {
-// 	const { id, movieTitle } = req.params;
+//DELETE
+app.delete('/users/:id/:movieTitle', (req, res) => {
+	const { id, movieTitle } = req.params;
 
-// 	let user = Users.find( user => user.id == id);
+	let user = Users.find( user => user.id == id);
 
-// 	if (user) {
-// 		user.favoriteMovies = user.favoriteMovies.filter(title => title !== movieTitle);
-// 		res.status(200).send(`${movieTitle} has been removed from user ${id}'s array`);
-// 	} else {
-// 		res.status(400).send('User not found.');
-// 	}
-// })
-
-app.delete('/users/:Username/movies/:MovieID', async (req, res) => {
-    const { Username, MovieID } = req.params;
-
-    console.log(`Attempting to remove movie ${MovieID} from user ${Username}'s favorites`);
-
-    try {
-        const user = await Users.findOne({ Username: Username });
-        if (!user) {
-            console.log(`User ${Username} not found`);
-            return res.status(404).send('User not found');
-        }
-
-        console.log(`User ${Username} found with favorite movies: ${user.FavoriteMovies}`);
-
-        // Ensure MovieID is treated as a string
-        const movieIDString = String(MovieID);
-
-        const updatedUser = await Users.findOneAndUpdate(
-            { Username: Username },
-            { $pull: { FavoriteMovies: movieIDString } },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            console.log(`Failed to update user ${Username}`);
-            res.status(404).send('User not found');
-        } else {
-            console.log(`Movie ${movieIDString} has been removed from ${Username}'s list of favorite movies.`);
-            res.status(200).send(`Movie ${movieIDString} has been removed from ${Username}'s list of favorite movies.`);
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error: ' + err);
-    }
-});
+	if (user) {
+		user.favoriteMovies = user.favoriteMovies.filter(title => title !== movieTitle);
+		res.status(200).send(`${movieTitle} has been removed from user ${id}'s array`);
+	} else {
+		res.status(400).send('User not found.');
+	}
+})
 
 app.delete('/users/:Username', (req, res) => {
 	Users.findOneAndDelete({ Username: req.params.Username })

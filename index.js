@@ -7,8 +7,6 @@ const express = require('express'),
 	  Models = require('./models.js');
 
 const Movies = Models.Movie;	
-const Genres = Models.Genre;
-const Directors = Models.Director;
 const Users = Models.User;
 
 mongoose.connect('mongodb://localhost:27017/myFlixDB');
@@ -20,12 +18,16 @@ app.use(morgan('common'));
 
 app.use(express.json());
 
+let auth = require('./auth')(app);
+const passport = require('passport');
+require('./passport');
+
 // get request
 app.get('/', (req, res) => {
 	res.send('Welcome to my app!');
 });
 
-app.get('/movies', async (req, res) => {
+app.get('/movies', passport.authenticate('jwt', {session: false}), async (req, res) => {
 	await Movies.find()
 		.then((movies) => {
 			res.status(201).json(movies);
@@ -36,17 +38,7 @@ app.get('/movies', async (req, res) => {
 		});
 });
 
-// err handler
-app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(500).send('Something broke!');
-});
-
-app.listen(8080, () => {
-	console.log('Your app is listening on port 8080.');
-});
-
-app.get('/movies/:Title', async (req, res) => {
+app.get('/movies/:Title', passport.authenticate('jwt', {session: false}), async (req, res) => {
 	Movies.findOne({ Title: req.params.Title })
         .then((movie) => {
             res.json(movie);
@@ -57,10 +49,10 @@ app.get('/movies/:Title', async (req, res) => {
         });
 });
 
-app.get('/genre/:Name', async (req, res) => {
-    Genres.findOne({ Name: req.params.Name })   
+app.get('/genres/:Name', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    await Movies.findOne({ 'Genre.Name': req.params.Name })
         .then((genre) => {
-            res.json(genre.Description);
+            res.json(genre.Genre);
         })
         .catch((err) => {
             console.error(err);
@@ -68,10 +60,10 @@ app.get('/genre/:Name', async (req, res) => {
         });
 });
 
-app.get('/movies/director/:directorName', async (req, res) => {
-	Directors.findOne({ Name: req.params.Name })
+app.get('/director/:Name', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    await Movies.findOne({ 'Director.Name': req.params.Name })
         .then((director) => {
-            res.json(director);
+            res.json(director.Director);
         })
         .catch((err) => {
             console.error(err);
@@ -79,7 +71,7 @@ app.get('/movies/director/:directorName', async (req, res) => {
         });
 });
 
-app.get('/users', async (req, res) => {
+app.get('/users', passport.authenticate('jwt', {session: false}), async (req, res) => {
     await Users.find()
         .then((users) => {
             res.status(201).json(users);
@@ -90,7 +82,7 @@ app.get('/users', async (req, res) => {
         });
 });
 
-app.get('/users/:Username', async (req, res) => {
+app.get('/users/:Username', passport.authenticate('jwt', {session: false}), async (req, res) => {
     await Users.findOne({ Username: req.params.Username })
         .then((user) => {
             res.json(user);
@@ -130,7 +122,10 @@ app.post('/users', async (req, res) => {
 });
 
 //UPDATE
-app.put('/users/:Username', async (req, res) => {
+app.put('/users/:Username', passport.authenticate('jwt', {session: false}), async (req, res) => {
+    if(req.user.Username !== req.params.Username){
+        return res.status(400).send('Permission denied');
+    }
     try {
         const updatedUser = await Users.findOneAndUpdate(
             { Username: req.params.Username },
@@ -142,8 +137,10 @@ app.put('/users/:Username', async (req, res) => {
                     Birthday: req.body.Birthday
                 }
             },
-            { new: true }
-        );
+            { new: true })
+            .then((updatedUser) => {
+            res.json(updatedUser);
+        })
         if (!updatedUser) {
             res.status(404).send('User not found');
         } else {
@@ -155,11 +152,11 @@ app.put('/users/:Username', async (req, res) => {
     }
 });
 
-app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
+app.patch('/users/:Username/movies/:MovieID', passport.authenticate('jwt', {session: false}), async (req, res) => {
     await Users.findOneAndUpdate({ Username: req.params.Username }, {
         $push: { FavoriteMovies: req.params.MovieID }
     },
-        { new: true }) // This line makes sure that the updated document is returned
+        { new: true }) 
         .then((updatedUser) => {
             res.json(updatedUser);
         })
@@ -170,7 +167,7 @@ app.patch('/users/:Username/movies/:MovieID', async (req, res) => {
 });
 
 //DELETE
-app.delete('/users/:id/:movieTitle', (req, res) => {
+app.delete('/users/:Username/:MovieID', passport.authenticate('jwt', {session: false}), (req, res) => {
 	const { id, movieTitle } = req.params;
 
 	let user = Users.find( user => user.id == id);
@@ -183,7 +180,7 @@ app.delete('/users/:id/:movieTitle', (req, res) => {
 	}
 })
 
-app.delete('/users/:Username', (req, res) => {
+app.delete('/users/:Username', passport.authenticate('jwt', {session: false}), (req, res) => {
 	Users.findOneAndDelete({ Username: req.params.Username })
         .then((user) => {
             if (!user) {
@@ -196,4 +193,15 @@ app.delete('/users/:Username', (req, res) => {
             console.error(err);
             res.status(500).send('Error: ' + err);
         });
+});
+
+// err handler
+app.use((err, req, res, next) => {
+	console.error(err.stack);
+	res.status(500).send('Something broke!');
+});
+
+
+app.listen(8080, () => {
+	console.log('Your app is listening on port 8080.');
 });

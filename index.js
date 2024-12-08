@@ -31,6 +31,8 @@ app.use(cors({
   }
 }));
 
+const {check, validationResult} = require('express-validator');
+
 let auth = require('./auth')(app);
 const passport = require('passport');
 require('./passport');
@@ -108,6 +110,18 @@ app.get('/users/:Username', passport.authenticate('jwt', {session: false}), asyn
 
 // CREATE
 app.post('/users', async (req, res) => {
+    [
+        check('Username', 'Username is required').isLength({min: 5}),
+        check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
+        check('Password', 'Password is required').not().isEmpty(),
+        check('Email', 'Email does not appear to be valid').isEmail(),
+    ], async (req, res) => {
+        let errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        }
+
     let hashedPassword = Users.hashPassword(req.body.Password);
 	await Users.findOne({ Username: req.body.Username })
 	  .then((user) => {

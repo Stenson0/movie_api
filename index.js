@@ -9,9 +9,6 @@ const express = require('express'),
 const Movies = Models.Movie;	
 const Users = Models.User;
 
-const cors = require('cors');
-app.use(cors());
-
 // mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -22,6 +19,9 @@ app.use(morgan('common'));
 app.use(express.json());
 
 const {check, validationResult} = require('express-validator');
+
+const cors = require('cors');
+app.use(cors());
 
 let auth = require('./auth')(app);
 const passport = require('passport');
